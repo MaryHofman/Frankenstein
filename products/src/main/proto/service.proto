@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package com.example.shared;
+import "google/protobuf/empty.proto";
+
+service gRPCservice {
+    rpc saveOneImage(SaveOneImageRequest) returns (SaveOneImageResponse);
+    rpc saveListImages(SaveListImageRequest) returns (SaveListImageResponse);
+    rpc deleteOneImage(DeleteOneImageRequest) returns (DeleteOneImageResponse);
+    rpc deleteListImages(DeleteListImagesRequest) returns (DeleteListImagesResponse);
+}
+
+message DeleteOneImageRequest{
+    string urlPhoto = 1;
+}
+
+message DeleteOneImageResponse{
+    string result = 1;
+}
+
+message DeleteListImagesRequest{
+    repeated string urlPhoto = 1;
+}
+
+
+message DeleteListImagesResponse{
+    string result = 1;
+}
+
+message SaveOneImageRequest { 
+    bytes photo = 1;
+    string  folder = 2;     
+}
+
+message SaveOneImageResponse {
+     string resultMessage = 1;
+}
+
+message SaveListImageRequest { 
+    repeated bytes mainPhoto = 1;     
+    string folder = 2;    
+}
+
+
+message SaveListImageResponse {
+    repeated string resultMessage = 1;
+}
+
+message Product {
+    int64 id = 1;
+    int32 quantity = 2;
+}
+
+message ConfirmationOfAvailabilityRequest {
+    repeated Product products = 1;
+}
+
+message ConfirmationOfAvailabilityResponse {
+    repeated Product products = 1;
+    string sum = 2;
+}
+
+message ProductDeletedRequest {
+     int64 productId = 1;
+}
+
+message ProductDeletedResponse {
+    bool success = 1;
+}
+
+
+
+service ConfirmationOfAvailability {
+    rpc check(ConfirmationOfAvailabilityRequest) returns (ConfirmationOfAvailabilityResponse);    
+    rpc MarkProductAsUnavailable(ProductDeletedRequest) returns (ProductDeletedResponse);
+}

@@ -1,0 +1,24 @@
+syntax = "proto3";
+package com.example.cartProto;
+
+message ProductListRequest {
+    repeated int64 productId = 1;
+}
+
+message ProductListItem {
+    int64 id = 1;
+    string listImage = 2;
+    string name = 3;
+    string price = 4; 
+    string type = 5;  
+    int32 quantity = 6;
+    string discount = 7;
+}
+
+message GetProducts {
+    repeated ProductListItem items = 1; 
+}
+
+service ProductService {
+    rpc getProductById(ProductListRequest) returns (GetProducts); 
+}

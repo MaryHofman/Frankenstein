@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tomcat-getaway-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tomcat-getaway
+  template:
+    metadata:
+      labels:
+        app: tomcat-getaway
+    spec:
+      containers:
+      - name: tomcat-getaway
+        image: tomcat:10.1-jdk21
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-getaway-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
+  selector:
+    app: tomcat-getaway

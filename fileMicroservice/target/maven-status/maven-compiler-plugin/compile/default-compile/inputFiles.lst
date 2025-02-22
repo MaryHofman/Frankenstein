@@ -1,0 +1,8 @@
+C:\f\Frankenstein\fileMicroservice\src\main\java\com\example\fileMicroservice\Adapters\TakeImageController.java
+C:\f\Frankenstein\fileMicroservice\src\main\java\com\example\fileMicroservice\ApplicationLayer\DTO\ImageDTO.java
+C:\f\Frankenstein\fileMicroservice\src\main\java\com\example\fileMicroservice\ApplicationLayer\gRPCserviceImpl.java
+C:\f\Frankenstein\fileMicroservice\src\main\java\com\example\fileMicroservice\ApplicationLayer\SaveImgService.java
+C:\f\Frankenstein\fileMicroservice\src\main\java\com\example\fileMicroservice\FileMicroserviceApplication.java
+C:\f\Frankenstein\fileMicroservice\src\main\java\com\example\fileMicroservice\InfrastructureLayer\GrpcServerConfig.java
+C:\f\Frankenstein\fileMicroservice\src\main\java\com\example\shared\gRPCserviceGrpc.java
+C:\f\Frankenstein\fileMicroservice\src\main\java\com\example\shared\Service.java

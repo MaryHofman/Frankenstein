@@ -1,0 +1,137 @@
+syntax = "proto3";
+package com.example.cartProto;
+
+message Request {
+    int64 idProduct = 1;      
+    int64 idUser = 2;           
+    int32 quantity = 3;     
+}
+
+message Response {                
+    string result = 1;      
+}
+
+message CartRequest {
+   repeated int64 idProduct = 1; 
+   int64 userId = 2;       
+}
+
+message CartResponse {                
+    string result = 1;      
+}
+
+message Product {
+    int64 id = 1;
+    int32 quantity = 2;
+}
+
+
+message GetCartRequest{
+    int64 userId = 1;
+}
+
+message ProductInCart {
+    int64 id = 1;
+    string listImage = 2;
+    string name = 3;
+    string price = 5;
+    string type = 6;
+    int32 quantity = 7;
+    string discount =8;
+}
+
+message ItemCart{
+    ProductInCart product = 1;
+    int32 quantity = 2;
+    string price = 3;
+}
+
+
+message GetCartResponce{
+    repeated ItemCart items = 1;
+}
+
+message GetIdProductsRequest{
+    int64 userId = 1;
+}
+message ProductAndQuantity{
+    int64 productId = 1;
+    int32   quantity  =2;
+}
+
+message GetIdProductsResponse{
+    repeated  ProductAndQuantity products = 1;
+}
+
+
+message OrderRequest{
+    int64 userId = 1;
+}
+
+message orderItemsGRPC{
+    int64 productId = 1;
+    string name = 2;
+    string type = 3;
+    string price = 4;
+    string photo = 5;
+    string discount = 6;
+}
+
+message orderOfUesr{
+    int64 orderId = 1;
+    repeated orderItemsGRPC items = 2;
+    string sum = 3;
+}
+
+message OrderResponce{
+    repeated orderOfUesr orders = 1;
+}
+
+message SetAddress{
+    int64 orderId = 1;
+    string address = 2;
+}
+
+message SetAddressResponce{
+    int64 orderId = 1;
+    string address = 2;
+}
+
+message DeleteResponce{
+    string answer = 1;
+}
+
+message DeleteRequest{
+    int64 productId = 1;
+}
+
+message takeStatisticRequest{
+    string startDate = 1;
+    string endDate = 2 ;
+}
+
+message takeStatisticResponce{
+    map<string, int32> countType = 1;
+}
+
+message ProductDeletedRequest {
+     int64 productId = 1;
+}
+
+message ProductDeletedResponse {
+    bool success = 1;
+}
+
+
+
+service CartGRPCService {
+    rpc cleanCart(CartRequest) returns (CartResponse); 
+    rpc addInCart(Request) returns (Response);
+    rpc getCartOfUser(GetCartRequest) returns (GetCartResponce);
+    rpc getIdProducts(GetIdProductsRequest) returns (GetIdProductsResponse);
+    rpc getOrderOfUser(OrderRequest) returns (OrderResponce);
+    rpc setAddress(SetAddress) returns (SetAddressResponce);
+    rpc deleteByProductId(DeleteRequest) returns (DeleteResponce);
+    rpc getStatistic(takeStatisticRequest) returns (takeStatisticResponce);
+    rpc MarkProductAsUnavailable(ProductDeletedRequest) returns (ProductDeletedResponse);
+}
