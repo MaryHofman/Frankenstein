@@ -1,0 +1,34 @@
+service:
+  name: f
+  identifier: f
+  serviceDefinition:
+    type: Ssh
+    spec:
+      artifacts:
+        primary:
+          primaryArtifactRef: <+input>
+          sources:
+            - identifier: f
+              spec:
+                connectorRef: francenshtain
+                packageName: f
+                packageType: container
+                version: "1"
+                digest: ""
+                org: f
+              type: GithubPackageRegistry
+      configFiles:
+        - configFile:
+            identifier: HarnessConfig
+            spec:
+              store:
+                type: Github
+                spec:
+                  connectorRef: francenshtain
+                  gitFetchType: Branch
+                  paths:
+                    - /harness_config
+                  branch: master
+  gitOpsEnabled: false
+  orgIdentifier: default
+  projectIdentifier: frankenshtain
