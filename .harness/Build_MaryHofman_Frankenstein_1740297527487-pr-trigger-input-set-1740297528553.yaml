@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_MaryHofman_Frankenstein_1740297527487-pr-trigger-input-set
+  identifier: Build_MaryHofman_Frankenstein_1740297527487prtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: frankenshtain
+  pipeline:
+    identifier: Build_MaryHofman_Frankenstein_1740297527487
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
