@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_MaryHofman_Frankenstein_1740297527487-push-trigger-input-set
+  identifier: Build_MaryHofman_Frankenstein_1740297527487pushtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: frankenshtain
+  pipeline:
+    identifier: Build_MaryHofman_Frankenstein_1740297527487
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
