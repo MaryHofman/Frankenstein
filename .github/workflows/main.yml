@@ -1,0 +1,28 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: SSH Deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: root
+          key: ${{ secrets.F_KEY }}
+          script: |
+              cd /home/Frankenstein || exit 1
+              git fetch origin && git pull origin main  # Более безопасное обновление кода
+              docker compose pull  # Подтянуть свежие образы
+              docker compose up -d --build gateway securitymicroservice cart products --force-recreate
+              docker image prune -af  # Очистить старые образы
+
