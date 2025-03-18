@@ -1,0 +1,29 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: debian-latest  
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: SSH Deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: root
+          key: ${{ secrets.F_KEY }}
+          script: |
+            cd /home/Frankenstein || exit 1
+            git fetch origin
+            git reset --hard origin/main  # Более надежный способ обновления
+            docker compose down --remove-orphans  # Удаление лишних контейнеров
+            docker compose pull  # Обновление образов из registry (если нужно)
+            docker compose up -d --build
+            docker image prune -af  # Безопасная очистка неиспользуемых образов
