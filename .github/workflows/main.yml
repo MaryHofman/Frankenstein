@@ -23,6 +23,6 @@ jobs:
               cd /home/Frankenstein || exit 1
               git fetch origin && git pull origin main  # Более безопасное обновление кода
               docker compose pull  # Подтянуть свежие образы
-              docker compose up -d --build gateway securitymicroservice cart products --force-recreate
+              docker compose up -d --build gateway securitymicroservice cart products nginx --force-recreate
               docker image prune -af  # Очистить старые образы
 
