@@ -1,5 +1,7 @@
 com\example\shared\gRPCserviceGrpc$3.class
 com\example\shared\Service$DeleteListImagesRequest$1.class
+application.properties
+service.proto
 com\example\shared\Service$DeleteListImagesRequest.class
 com\example\shared\Service$DeleteOneImageResponseOrBuilder.class
 com\example\shared\gRPCserviceGrpc$gRPCserviceMethodDescriptorSupplier.class
