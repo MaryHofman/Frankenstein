@@ -3,8 +3,11 @@ package com.example.fileMicroservice.ApplicationLayer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties.Io;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,7 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 import com.example.fileMicroservice.ApplicationLayer.DTO.ImageDTO;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -117,38 +121,49 @@ public class SaveImgService {
  
 
     public Mono<DataBuffer> takeImage(String folder, String name) {
-                String cacheKey = folder + "/" + name;
-                Cache cache = cacheManager.getCache("imageCache");
-                
-                if (cache != null && cache.get(cacheKey) != null) {
-                    byte[] cachedImage = (byte[]) cache.get(cacheKey).get();
-                    DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
-                    return Mono.just(dataBufferFactory.wrap(cachedImage));
-                }
-
-                Path imagePath = Paths.get(folder, name);
-                
-                if (Files.exists(imagePath)) {
-                    DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
-                    
-                    return Mono.fromCallable(() -> {
-                        try {
-                            byte[] bytes = Files.readAllBytes(imagePath);
-                            DataBuffer buffer = dataBufferFactory.wrap(bytes);
-                            if (cache != null) {
-                                cache.put(cacheKey, bytes); 
-                            }
-                            
-                            return buffer;
-                        } catch (IOException e) {
-                            throw new RuntimeException("Failed to read image", e);
-                        }
-                    });
-                } else {
-                    return Mono.empty(); 
-                }
-            }
+        String cacheKey = folder + "/" + name;
+        Cache cache = cacheManager.getCache("imageCache");
         
+        if (cache != null) {
+            Cache.ValueWrapper cached = cache.get(cacheKey);
+            if (cached != null) {
+                byte[] bytes = (byte[]) cached.get();
+                return Mono.just(
+                    DefaultDataBufferFactory.sharedInstance.wrap(bytes)
+                );
+            }
+        }
+    
+        Path imagePath = Paths.get(folder, name);
+        if (!Files.exists(imagePath)) {
+            return Mono.empty();
+        }
+    
+        Resource resource = new FileSystemResource(imagePath);
+        return DataBufferUtils.read(resource, DefaultDataBufferFactory.sharedInstance, 4096)
+            .collectList()
+            // Явное указание типа DataBuffer для handle
+            .<DataBuffer>handle((buffers, sink) -> {
+                try {
+                    int size = buffers.stream().mapToInt(DataBuffer::readableByteCount).sum();
+                    byte[] bytes = new byte[size];
+                    int offset = 0;
+                    for (DataBuffer buffer : buffers) {
+                        int length = buffer.readableByteCount();
+                        buffer.read(bytes, offset, length);
+                        offset += length;
+                        DataBufferUtils.release(buffer);
+                    }
+                    if (cache != null) {
+                        cache.put(cacheKey, bytes);
+                    }
+                    sink.next(DefaultDataBufferFactory.sharedInstance.wrap(bytes));
+                } catch (Exception e) {
+                    sink.error(new RuntimeException("Failed to process image", e));
+                }
+            })
+            .subscribeOn(Schedulers.boundedElastic());
+    }   
 
         public String deleteImage(String url){
             File deletingFile = new File(url);

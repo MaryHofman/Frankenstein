@@ -35,6 +35,4 @@ public class TakeImageController {
                 .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()));
     }
 
-
-
 }
