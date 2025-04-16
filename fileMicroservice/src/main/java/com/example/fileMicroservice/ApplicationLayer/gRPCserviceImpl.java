@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
             String resultMessage;
     
-            resultMessage = saveImgService.saveImage(photo, folder, "webp");
+            resultMessage = saveImgService.saveImage(photo, folder, "webp", 400, 400);
 
             SaveOneImageResponse response = SaveOneImageResponse.newBuilder()
                 .setResultMessage(resultMessage)
@@ -52,7 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
             List<String> resultMessages = new ArrayList<>();
 
             for (byte[] photo : request.getMainPhotoList().stream().map(bytes -> bytes.toByteArray()).toList()) {
-                resultMessages.add(saveImgService.saveImage(photo, folder, "webp"));
+                resultMessages.add(saveImgService.saveImage(photo, folder, "webp", 400, 400));
             }
 
             SaveListImageResponse response = SaveListImageResponse.newBuilder()

@@ -1,11 +1,18 @@
 package com.example.fileMicroservice.ApplicationLayer;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties.Io;
+import org.springframework.cache.CacheManager;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -14,31 +21,26 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
-
 import javax.imageio.ImageIO;
 import com.example.fileMicroservice.ApplicationLayer.DTO.ImageDTO;
-
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-
-
-import org.springframework.stereotype.Service;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import org.springframework.cache.Cache;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+
 
 @Service
 public class SaveImgService {
 
-   
+    @Autowired
+    private CacheManager cacheManager;
 
     public static BufferedImage takeImage(byte[] byteIMG) throws IOException {
         try (InputStream imageStream = new ByteArrayInputStream(byteIMG)) {
@@ -54,11 +56,11 @@ public class SaveImgService {
     
 
 
-    public String saveImage(byte[] image, String folder, String format){
-      
+    public String saveImage(byte[] image, String folder, String format, int width, int height) {
+
         File directory = new File(folder);
         if (!directory.exists()) {
-            boolean created = directory.mkdirs(); 
+            boolean created = directory.mkdirs();
             if (!created) {
                 try {
                     throw new IOException("Не удалось создать папку: " + folder);
@@ -67,66 +69,113 @@ public class SaveImgService {
                 }
             }
         }
-
+    
         String uniqueFileName = UUID.randomUUID().toString();
-
         String result;
-
+    
         if (uniqueFileName.length() >= 100) {
-             result = uniqueFileName.substring(0, 100);
+            result = uniqueFileName.substring(0, 100);
         } else {
-             result = uniqueFileName; 
+            result = uniqueFileName;
         }
-
-
+    
         File imageFile = Paths.get(folder, uniqueFileName + "." + format).toFile();
-
-        try(ByteArrayInputStream write = new ByteArrayInputStream(image)){
-            BufferedImage buffImage = ImageIO.read(write);
-            if (buffImage == null) {
+    
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(image)) {
+    
+            BufferedImage originalImage = ImageIO.read(byteArrayInputStream);
+            if (originalImage == null) {
                 throw new IOException("Неверный формат изображения или поврежденный файл.");
             }
     
-       
-            boolean saved = ImageIO.write(buffImage, format, imageFile);
+            // Расчет пропорции, чтобы сохранить размеры изображения
+            float ratio = (float) originalImage.getWidth() / originalImage.getHeight();
+            
+            // Определяем, какую сторону (ширину или высоту) использовать для пропорционального изменения
+            if (width > 0 && height > 0) {
+                // Если указаны оба параметра, используем пропорцию для обеих сторон
+                if (originalImage.getWidth() > originalImage.getHeight()) {
+                    // Если изображение более широкое, масштабируем по ширине
+                    height = (int) (width / ratio);
+                } else {
+                    // Если изображение более высокое или квадратное, масштабируем по высоте
+                    width = (int) (height * ratio);
+                }
+            }
+    
+            BufferedImage resizedImage = resizeImage(originalImage, width, height);
+    
+            // Сохраняем уменьшенное изображение
+            boolean saved = ImageIO.write(resizedImage, format, imageFile);
             if (!saved) {
                 throw new IOException("Не удалось сохранить изображение. Убедитесь, что формат поддерживается: " + format);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
     
-        uniqueFileName = result+ "." + format; 
-     
-        return folder+"/"+uniqueFileName;
+        uniqueFileName = result + "." + format;
+        return folder + "/" + uniqueFileName;
     }
-
+    
+    
+    private BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
+        BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = resizedImage.createGraphics();
+    
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(originalImage, 0, 0, width, height, null);
+        g.dispose(); 
+    
+        return resizedImage;
+    }
+    
  
 
-        public Mono<byte[]> takeImage(String folder, String name) {
-            return Mono.fromCallable(() -> {
-                File imageFile = new File(folder, name);
-
-                if (!imageFile.exists()) {
-                    return null;
-                }
-
-                try (FileInputStream fileInputStream = new FileInputStream(imageFile);
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-
-                    byte[] buffer = new byte[4096];
-                    int bytesRead;
-                    while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                        byteArrayOutputStream.write(buffer, 0, bytesRead);
-                    }
-
-                    return byteArrayOutputStream.toByteArray();
-                } catch (IOException e) {
-                    throw new RuntimeException("Error reading file", e);
-                }
-            });
+    public Mono<DataBuffer> takeImage(String folder, String name) {
+        String cacheKey = folder + "/" + name;
+        Cache cache = cacheManager.getCache("imageCache");
+        
+        if (cache != null) {
+            Cache.ValueWrapper cached = cache.get(cacheKey);
+            if (cached != null) {
+                byte[] bytes = (byte[]) cached.get();
+                return Mono.just(
+                    DefaultDataBufferFactory.sharedInstance.wrap(bytes)
+                );
+            }
         }
+    
+        Path imagePath = Paths.get(folder, name);
+        if (!Files.exists(imagePath)) {
+            return Mono.empty();
+        }
+    
+        Resource resource = new FileSystemResource(imagePath);
+        return DataBufferUtils.read(resource, DefaultDataBufferFactory.sharedInstance, 4096)
+            .collectList()
+   
+            .<DataBuffer>handle((buffers, sink) -> {
+                try {
+                    int size = buffers.stream().mapToInt(DataBuffer::readableByteCount).sum();
+                    byte[] bytes = new byte[size];
+                    int offset = 0;
+                    for (DataBuffer buffer : buffers) {
+                        int length = buffer.readableByteCount();
+                        buffer.read(bytes, offset, length);
+                        offset += length;
+                        DataBufferUtils.release(buffer);
+                    }
+                    if (cache != null) {
+                        cache.put(cacheKey, bytes);
+                    }
+                    sink.next(DefaultDataBufferFactory.sharedInstance.wrap(bytes));
+                } catch (Exception e) {
+                    sink.error(new RuntimeException("Failed to process image", e));
+                }
+            })
+            .subscribeOn(Schedulers.boundedElastic());
+    }   
 
         public String deleteImage(String url){
             File deletingFile = new File(url);

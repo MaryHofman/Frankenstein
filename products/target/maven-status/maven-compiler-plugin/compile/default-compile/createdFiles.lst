@@ -5,8 +5,10 @@ com\example\cartProto\ProductServiceGrpc$MethodHandlers.class
 com\example\products\ApplicationLayer\Services\ConfirmationOfAvailabilityService.class
 com\example\shared\Service$ConfirmationOfAvailabilityResponse$Builder.class
 com\example\shared\gRPCserviceGrpc$3.class
+com\example\products\InfrastructureLayer\Repository\JpaReviewRepository.class
 application.properties
 com\example\products\ApplicationLayer\Services\ProductCartService.class
+service.proto
 com\example\shared\Service$ConfirmationOfAvailabilityResponse$1.class
 com\example\products\ApplicationLayer\Services\ReviewServices.class
 com\example\shared\Service$ProductDeletedRequest.class
@@ -62,6 +64,7 @@ com\example\cartProto\ProductServiceGrpc$ProductServiceMethodDescriptorSupplier.
 com\example\products\InfrastructureLayer\Repository\JpaCategoryRepository.class
 com\example\products\InfrastructureLayer\Entity\Rating.class
 com\example\shared\Service$DeleteListImagesResponse.class
+com\example\products\DomanianLayer\UseCases\RatingUseCase.class
 com\example\shared\Service$SaveListImageRequestOrBuilder.class
 com\example\products\InfrastructureLayer\Entity\Products.class
 com\example\cartProto\Cart$ProductListItemOrBuilder.class
@@ -76,8 +79,11 @@ com\example\shared\ConfirmationOfAvailabilityGrpc$MethodHandlers.class
 com\example\shared\Service$DeleteListImagesResponseOrBuilder.class
 com\example\cartProto\Cart$ProductListItem.class
 com\example\products\InfrastructureLayer\GrpcServerConfiguration.class
+com\example\products\DomanianLayer\Entityes\ProductReview.class
 com\example\products\ApplicationLayer\Services\ProductsService.class
+com\example\products\InfrastructureLayer\Repository\Mappers\ReviewMapper.class
 com\example\products\ApplicationLayer\DTO\in\ProductCheck.class
+com\example\products\InfrastructureLayer\Repository\JpaRatingRepository.class
 com\example\shared\Service$DeleteListImagesRequest$1.class
 com\example\shared\Service$Product$1.class
 com\example\cartProto\ProductServiceGrpc$ProductServiceImplBase.class
@@ -88,6 +94,7 @@ com\example\shared\Service$DeleteOneImageResponseOrBuilder.class
 com\example\shared\Service$Product$Builder.class
 com\example\cartProto\Cart$ProductListRequestOrBuilder.class
 com\example\shared\ConfirmationOfAvailabilityGrpc$ConfirmationOfAvailabilityImplBase.class
+replace.properties
 com\example\shared\Service$SaveOneImageResponse$Builder.class
 com\example\shared\Service$ProductDeletedRequest$1.class
 com\example\shared\gRPCserviceGrpc$gRPCserviceFutureStub.class
@@ -100,6 +107,7 @@ com\example\shared\Service$ProductDeletedResponse$1.class
 com\example\shared\Service$DeleteListImagesRequestOrBuilder.class
 com\example\products\InfrastructureLayer\Entity\Category.class
 com\example\shared\ConfirmationOfAvailabilityGrpc$3.class
+com\example\products\Adapters\ReviewController.class
 com\example\shared\gRPCserviceGrpc$1.class
 com\example\products\InfrastructureLayer\Convertors\CharacteristicsTypeConverter$1.class
 com\example\products\InfrastructureLayer\Entity\Rating$RatingBuilder.class

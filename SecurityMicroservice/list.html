@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация</title>
+</head>
+<body>
+    <h1>Авторизация</h1>
+    <button id="authorizeButton">Авторизоваться</button>
+    
+    <script>
+        document.getElementById('authorizeButton').addEventListener('click', function() {
+            fetch('https://150.241.113.6/api/authorization', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: 'john22@example.com',
+                    password: 'password123'
+                })
+            })
+            .then(response => response.json())  // Преобразуем ответ в JSON
+            .then(data => console.log(data))     // Выводим данные в консоль
+            .catch(error => console.error('Error:', error));  // Обрабатываем ошибку
+        });
+    </script>
+</body>
+</html>

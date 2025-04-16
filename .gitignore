@@ -1,0 +1,3 @@
+# Игнорировать .metals и .vscode везде
+**/.metals/
+**/.vscode/
