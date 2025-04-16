@@ -57,67 +57,79 @@ public class SaveImgService {
 
 
     public String saveImage(byte[] image, String folder, String format, int width, int height) {
-            // Создаем папку, если она не существует
-            File directory = new File(folder);
-            if (!directory.exists()) {
-                boolean created = directory.mkdirs();
-                if (!created) {
-                    try {
-                        throw new IOException("Не удалось создать папку: " + folder);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+
+        File directory = new File(folder);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (!created) {
+                try {
+                    throw new IOException("Не удалось создать папку: " + folder);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-
-            // Генерация уникального имени файла
-            String uniqueFileName = UUID.randomUUID().toString();
-            String result;
-
-            if (uniqueFileName.length() >= 100) {
-                result = uniqueFileName.substring(0, 100);
-            } else {
-                result = uniqueFileName;
-            }
-
-            File imageFile = Paths.get(folder, uniqueFileName + "." + format).toFile();
-
-            try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(image)) {
-                // Чтение исходного изображения
-                BufferedImage originalImage = ImageIO.read(byteArrayInputStream);
-                if (originalImage == null) {
-                    throw new IOException("Неверный формат изображения или поврежденный файл.");
-                }
-
-                // Масштабируем изображение до нужных размеров
-                BufferedImage resizedImage = resizeImage(originalImage, width, height);
-
-                // Сохраняем уменьшенное изображение
-                boolean saved = ImageIO.write(resizedImage, format, imageFile);
-                if (!saved) {
-                    throw new IOException("Не удалось сохранить изображение. Убедитесь, что формат поддерживается: " + format);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            uniqueFileName = result + "." + format;
-            return folder + "/" + uniqueFileName;
         }
-
-
+    
+        String uniqueFileName = UUID.randomUUID().toString();
+        String result;
+    
+        if (uniqueFileName.length() >= 100) {
+            result = uniqueFileName.substring(0, 100);
+        } else {
+            result = uniqueFileName;
+        }
+    
+        File imageFile = Paths.get(folder, uniqueFileName + "." + format).toFile();
+    
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(image)) {
+    
+            BufferedImage originalImage = ImageIO.read(byteArrayInputStream);
+            if (originalImage == null) {
+                throw new IOException("Неверный формат изображения или поврежденный файл.");
+            }
+    
+            // Расчет пропорции, чтобы сохранить размеры изображения
+            float ratio = (float) originalImage.getWidth() / originalImage.getHeight();
+            
+            // Определяем, какую сторону (ширину или высоту) использовать для пропорционального изменения
+            if (width > 0 && height > 0) {
+                // Если указаны оба параметра, используем пропорцию для обеих сторон
+                if (originalImage.getWidth() > originalImage.getHeight()) {
+                    // Если изображение более широкое, масштабируем по ширине
+                    height = (int) (width / ratio);
+                } else {
+                    // Если изображение более высокое или квадратное, масштабируем по высоте
+                    width = (int) (height * ratio);
+                }
+            }
+    
+            BufferedImage resizedImage = resizeImage(originalImage, width, height);
+    
+            // Сохраняем уменьшенное изображение
+            boolean saved = ImageIO.write(resizedImage, format, imageFile);
+            if (!saved) {
+                throw new IOException("Не удалось сохранить изображение. Убедитесь, что формат поддерживается: " + format);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    
+        uniqueFileName = result + "." + format;
+        return folder + "/" + uniqueFileName;
+    }
+    
+    
     private BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
-        // Создаем новое изображение с требуемыми размерами
         BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = resizedImage.createGraphics();
-
-        // Устанавливаем параметры масштабирования для лучшего качества
+    
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g.drawImage(originalImage, 0, 0, width, height, null);
-        g.dispose();  // Освобождаем ресурсы графики
-
+        g.dispose(); 
+    
         return resizedImage;
     }
+    
  
 
     public Mono<DataBuffer> takeImage(String folder, String name) {
@@ -142,7 +154,7 @@ public class SaveImgService {
         Resource resource = new FileSystemResource(imagePath);
         return DataBufferUtils.read(resource, DefaultDataBufferFactory.sharedInstance, 4096)
             .collectList()
-            // Явное указание типа DataBuffer для handle
+   
             .<DataBuffer>handle((buffers, sink) -> {
                 try {
                     int size = buffers.stream().mapToInt(DataBuffer::readableByteCount).sum();

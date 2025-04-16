@@ -93,10 +93,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.getFilterdProducts(type, filteringConditions));
     }
 
-    @GetMapping("/get/ctegory/{name}")
-    public ResponseEntity<List<ProductDTO>> getCategoryByName( ) throws InterruptedException{
-        return ResponseEntity.ok(productService.getFilterdProducts(type, filteringConditions));
-    }
+    
     
 
     
